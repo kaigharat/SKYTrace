@@ -1,0 +1,66 @@
+# SkyTrace — CodeBERT baseline config
+# CodeBERT -> classification head, trained for binary vulnerability detection.
+
+experiment:
+  name: "codebert_baseline"
+  output_dir: "experiments/codebert"
+  seed: 42
+
+dataset:
+  config: "dataset.yaml"
+  sample_size: null              # null = full; integer = dev subset
+
+model:
+  encoder:
+    name: "microsoft/codebert-base"
+    # GraphCodeBERT alternative: "microsoft/graphcodebert-base"
+    hidden_size: 768             # CodeBERT-base output dim
+    freeze_layers: 12             # 0 = fine-tune everything; N = freeze first N layers
+  classifier:
+    hidden_dims: [256]           # MLP head
+    dropout: 0.1
+    n_classes: 1                 # binary logistic output
+  pooling: "mean"                # "mean" | "cls" | "max"
+  # Optional: pre-compute and cache CodeBERT embeddings to avoid re-encoding
+  # every epoch. When cache_embeddings=true, the encoder is run once on the
+  # whole dataset and the cached [CLS]/mean-pooled vector is reused.
+  cache_embeddings: false
+  cache_path: "experiments/codebert/embeddings_cache.npz"
+
+tokenizer:
+  max_length: 256                # CodeBERT max is 512
+  truncation: true
+  padding: "max_length"
+
+training:
+  batch_size: 8
+  eval_batch_size: 16
+  epochs: 5
+  learning_rate: 2.0e-5
+  weight_decay: 0.01
+  warmup_ratio: 0.1
+  max_grad_norm: 1.0
+  fp16: true                    # CPU-only environment; disable mixed precision
+  scheduler: "linear_with_warmup"
+  class_weighted_loss: true      # use BCEWithLogitsLoss with positive weight
+  early_stopping:
+    patience: 2
+    metric: "pr_auc"             # PR-AUC is the right metric for imbalanced data
+    mode: "max"
+  checkpoint:
+    save_dir: "models/checkpoints/codebert_baseline"
+    save_best: true
+    save_last: true
+  log_interval: 50               # log every N batches
+  eval_interval: 1               # evaluate every N epochs
+
+dataloader:
+  num_workers: 2
+  pin_memory: false              # CPU-only
+
+evaluation:
+  metrics: [accuracy, precision, recall, f1, macro_f1, weighted_f1, roc_auc, pr_auc]
+  confusion_matrix: true
+  roc_curve: true
+  pr_curve: true
+  threshold: 0.5

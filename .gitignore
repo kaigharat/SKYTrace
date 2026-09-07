@@ -1,0 +1,100 @@
+# ─────────────────────────────────────────────
+# SKYTrace – Python ML Project .gitignore
+# ─────────────────────────────────────────────
+
+# ── Python ────────────────────────────────────
+__pycache__/
+*.py[cod]
+*$py.class
+*.pyo
+*.pyd
+*.egg
+*.egg-info/
+dist/
+build/
+.eggs/
+*.whl
+*.spec
+
+# ── Virtual Environments ──────────────────────
+venv/
+.venv/
+env/
+.env/
+ENV/
+env.bak/
+venv.bak/
+
+# ── Jupyter / IPython ─────────────────────────
+.ipynb_checkpoints/
+*.ipynb
+profile_default/
+ipython_config.py
+
+# ── Large Data Files ──────────────────────────
+# Parquet datasets (can be hundreds of MB)
+*.parquet
+data/processed/
+data/splits/
+data/raw/
+
+# ── Model Checkpoints & Weights ───────────────
+# PyTorch checkpoints (.pt / .pth) can be 500+ MB
+*.pt
+*.pth
+*.bin
+*.ckpt
+*.safetensors
+models/checkpoints/
+models/metadata/
+
+# ── Experiment Logs & Artifacts ───────────────
+experiments/
+runs/
+wandb/
+mlruns/
+lightning_logs/
+*.log
+
+# ── OS Artefacts ──────────────────────────────
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+desktop.ini
+
+# ── IDE / Editor ──────────────────────────────
+.vscode/
+.idea/
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.sw?
+*.swp
+
+# ── Environment & Secrets ─────────────────────
+.env
+.env.*
+*.pem
+*.key
+secrets.yaml
+secrets.json
+
+# ── Coverage / Testing ────────────────────────
+.coverage
+coverage.xml
+htmlcov/
+.pytest_cache/
+.tox/
+nosetests.xml
+test-results/
+
+# ── Miscellaneous ─────────────────────────────
+*.tmp
+*.bak
+*.orig
+0.5).astype(int)
