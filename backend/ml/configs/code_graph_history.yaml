@@ -1,0 +1,89 @@
+# SkyTrace — Experiment D: Code + Graph + History (Full Multimodal)
+# CodeBERT (frozen) + GraphSAGE + History MLP → concat → fusion MLP
+# Optional: multi-task with CWE presence head
+
+experiment:
+  name: "code_graph_history"
+  output_dir: "experiments/code_graph_history"
+  seed: 42
+
+dataset:
+  config: "dataset.yaml"
+  sample_size: null              # null = full dataset
+
+model:
+  encoder:
+    name: "microsoft/codebert-base"
+    hidden_size: 768
+    freeze_layers: 12            # Frozen — same as all other experiments
+  pooling: "mean"
+
+  gnn:
+    hidden_channels: 256
+    out_channels: 256
+    num_layers: 2
+    dropout: 0.1
+
+  history:
+    in_features: 6
+    hidden_dims: [64, 64]
+    out_dim: 64
+    dropout: 0.1
+    use_batchnorm: true
+
+  fusion:
+    hidden_dims: [512, 256]
+    dropout: 0.1
+
+  multi_task: true               # Enable CWE-presence secondary head
+  n_classes: 1
+
+  # Load CodeBERT encoder weights from Experiment A checkpoint
+  load_codebert_from: "models/checkpoints/codebert_baseline/best.pt"
+
+tokenizer:
+  max_length: 256
+  truncation: true
+  padding: "max_length"
+
+graph:
+  max_commit_size: 50
+  embedding_cache: "experiments/code_graph_history/embeddings_cache.npz"
+
+history_features:
+  long_function_threshold: 50
+  cache_path: "experiments/code_graph_history/history_features.npz"
+
+training:
+  batch_size: 64
+  eval_batch_size: 128
+  epochs: 5
+  learning_rate: 5.0e-4          # Slightly lower than B/C — more parameters to train
+  weight_decay: 0.01
+  warmup_ratio: 0.05
+  max_grad_norm: 1.0
+  fp16: true
+  scheduler: "linear_with_warmup"
+  class_weighted_loss: true
+  multi_task_lambda_cwe: 0.2     # Weight for secondary CWE loss
+  early_stopping:
+    patience: 2
+    metric: "pr_auc"
+    mode: "max"
+  checkpoint:
+    save_dir: "models/checkpoints/code_graph_history"
+    save_best: true
+    save_last: true
+  log_interval: 100
+  eval_interval: 1
+
+dataloader:
+  num_workers: 0
+  pin_memory: false
+
+evaluation:
+  metrics: [accuracy, precision, recall, f1, roc_auc, pr_auc]
+  confusion_matrix: true
+  roc_curve: true
+  pr_curve: true
+  threshold: 0.5

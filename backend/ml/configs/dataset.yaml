@@ -1,0 +1,31 @@
+# SkyTrace — Training-phase dataset config
+# Points at the existing dataset-foundation outputs. Splits are NOT regenerated.
+
+dataset:
+  version: "skytrace-diversevul-v1"
+  processed_path: "data/processed/skytrace_diversevul.parquet"
+  splits_dir: "data/splits"
+  splits:
+    train: "data/splits/train.parquet"
+    validation: "data/splits/validation.parquet"
+    test: "data/splits/test.parquet"
+  # The dataset is class-imbalanced (~5.7% vulnerable). Make this visible.
+  class_balance:
+    report: true
+    handle_in_model: true   # use class-weighted loss / RF class_weight
+  schema:
+    text_col: "function_code"
+    label_col: "label"
+    sample_id_col: "sample_id"
+    project_col: "project"
+    cwe_col: "cwe"
+    commit_id_col: "commit_id"
+    future_derived:
+      - prior_defect_count
+      - prior_vulnerability_count
+      - co_change_frequency
+      - file_volatility
+
+mode:
+  default: "full"            # "full" or "dev"
+  dev_sample_size: 10000     # only used when --sample-size passed on CLI

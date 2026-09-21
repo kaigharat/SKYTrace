@@ -1,0 +1,79 @@
+# SkyTrace — Random Forest baseline config
+# Uses statically-engineered code features (no DL).
+
+experiment:
+  name: "random_forest_baseline"
+  output_dir: "experiments/random_forest"
+  seed: 42
+
+dataset:
+  config: "dataset.yaml"
+  sample_size: null          # null = full dataset; integer = dev subset
+
+features:
+  # All features are computed from function_code only — no future-derived data.
+  include:
+    - length_chars
+    - n_lines
+    - n_blank_lines
+    - n_code_lines
+    - n_braces_open
+    - n_braces_close
+    - n_parens_open
+    - n_parens_close
+    - n_branches_if
+    - n_branches_else
+    - n_switch
+    - n_case
+    - n_loops_for
+    - n_loops_while
+    - n_loops_do
+    - n_returns
+    - n_function_calls            # heuristic: count of '(' preceded by identifier
+    - n_pointers                  # count of '*'
+    - n_arrays                    # count of '['
+    - n_comments
+    - n_preprocessor              # count of lines starting with '#'
+    - n_keywords_static
+    - n_keywords_const
+    - n_keywords_struct
+    - n_keywords_typedef
+    - n_keywords_sizeof
+    - n_macros                    # count of uppercase identifiers >= 4 chars
+    - avg_line_length
+    - max_line_length
+    - n_distinct_tokens
+    - n_unique_identifiers
+    - has_assert
+    - has_malloc
+    - has_free
+    - has_memcpy
+    - has_strcpy
+    - has_sprintf
+    - has_gets
+    - has_cast
+  cache: true
+  cache_path: "experiments/random_forest/features_cache.parquet"
+
+model:
+  type: "RandomForestClassifier"
+  params:
+    n_estimators: 300
+    max_depth: null              # let it grow
+    min_samples_split: 5
+    min_samples_leaf: 2
+    max_features: "sqrt"
+    class_weight: "balanced"     # critical — vulnerable class is ~5.7%
+    n_jobs: -1
+    random_state: 42
+
+training:
+  # RF has no epochs; this is just for the report.
+  log_interval: 1
+
+evaluation:
+  metrics: [accuracy, precision, recall, f1, macro_f1, weighted_f1, roc_auc, pr_auc]
+  confusion_matrix: true
+  roc_curve: true
+  pr_curve: true
+  threshold: 0.5                 # for binary predictions
