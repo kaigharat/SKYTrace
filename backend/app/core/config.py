@@ -1,6 +1,6 @@
 """Core application configuration."""
 
-from typing import List
+from typing import List, Optional
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
@@ -17,6 +17,7 @@ class Settings(BaseSettings):
         "http://127.0.0.1:8000",
     ]
     MODEL_PATH: str = "backend/ml/weights/rf_baseline.joblib"
+    GITHUB_TOKEN: Optional[str] = None
 
     model_config = SettingsConfigDict(
         env_file=".env",

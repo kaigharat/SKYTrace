@@ -41,11 +41,15 @@ const features = [
 ];
 
 export default async function Home() {
-  let demoRepo = await api.getRepository("repo-orbit-payments").catch(() => defaultRepos[0]);
-  if (!demoRepo) demoRepo = defaultRepos[0];
+  const repos = await api.getRepositories().catch(() => []);
+  const completedRepo = repos.find((r) => r.analysisStatus === "completed");
+  const demoRepo = completedRepo || repos[0] || defaultRepos[0];
 
-  let demoHealth = await api.getRepositoryHealth(demoRepo.id).catch(() => defaultHealth[demoRepo.id]);
-  if (!demoHealth) demoHealth = defaultHealth[demoRepo.id];
+  let demoHealth = completedRepo
+    ? await api.getRepositoryHealth(completedRepo.id).catch(() => null)
+    : await api.getRepositoryHealth(demoRepo.id).catch(() => defaultHealth[demoRepo.id]);
+  if (!demoHealth) demoHealth = defaultHealth[demoRepo.id] || defaultHealth["repo-orbit-payments"];
+
   return (
     <div className="flex min-h-svh flex-col">
       <header className="sticky top-0 z-20 border-b border-border/70 bg-background/85 backdrop-blur">

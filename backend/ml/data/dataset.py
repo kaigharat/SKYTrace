@@ -16,8 +16,14 @@ from dataclasses import dataclass
 from typing import Any, Dict, Optional
 
 import pandas as pd
-import torch
-from torch.utils.data import Dataset
+
+try:
+    import torch
+    from torch.utils.data import Dataset
+except ImportError:
+    torch = None  # type: ignore
+    class Dataset:  # type: ignore
+        pass
 
 
 def load_splits(dataset_cfg: Dict[str, Any], sample_size: Optional[int] = None) -> Dict[str, pd.DataFrame]:

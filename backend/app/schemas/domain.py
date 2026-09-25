@@ -232,6 +232,7 @@ class AnalysisJob(BaseModel):
     progress: int
     steps: List[AnalysisStep] = Field(default_factory=list)
     startedAt: str
+    errorMessage: Optional[str] = None
 
 
 class CommitEntry(BaseModel):

@@ -20,14 +20,6 @@ import { ComponentsTable } from "@/components/dashboard/components-table";
 import { SecuritySummary } from "@/components/dashboard/security-summary";
 import { GraphPreview } from "@/components/dashboard/graph-preview";
 import { StatTile } from "@/components/dashboard/stat-tile";
-import {
-  getComponentsForRepo,
-  getPullRequestsForRepo,
-  getRepository,
-  getSecurityFindingsForRepo,
-  repositoryGraphs,
-  repositoryHealth,
-} from "@/lib/mock-data";
 import { formatRelativeDate } from "@/lib/format";
 import { healthScoreLabel } from "@/lib/risk";
 import { api } from "@/lib/api";
@@ -38,32 +30,27 @@ export default async function RepositoryDashboardPage({
   params: Promise<{ repoId: string }>;
 }) {
   const { repoId } = await params;
-  let repo = await api.getRepository(repoId).catch(() => getRepository(repoId));
-  if (!repo) repo = getRepository(repoId);
+  const repo = await api.getRepository(repoId).catch(() => null);
   if (!repo) notFound();
 
-  let health = await api.getRepositoryHealth(repoId).catch(() => repositoryHealth[repoId]);
-  if (!health) health = repositoryHealth[repoId];
+  const health = await api.getRepositoryHealth(repoId).catch(() => null);
 
   if (!health || repo.analysisStatus !== "completed") {
     redirect(`/repositories/${repoId}/analyzing`);
   }
 
-  let comps = await api.getComponents(repoId).catch(() => getComponentsForRepo(repoId));
-  const allComponents = (comps && comps.length > 0 ? comps : getComponentsForRepo(repoId)).sort(
-    (a, b) => b.defectRisk - a.defectRisk,
-  );
+  const comps = await api.getComponents(repoId).catch(() => []);
+  const allComponents = [...comps].sort((a, b) => b.defectRisk - a.defectRisk);
   const topComponents = allComponents.slice(0, 6);
 
-  let findings = await api.getSecurityFindings(repoId).catch(() => getSecurityFindingsForRepo(repoId));
-  const securityFindings = (findings || getSecurityFindingsForRepo(repoId)).slice(0, 4);
+  const findings = await api.getSecurityFindings(repoId).catch(() => []);
+  const securityFindings = findings.slice(0, 4);
 
-  let graph = await api.getRepositoryGraph(repoId).catch(() => repositoryGraphs[repoId]);
-  if (!graph) graph = repositoryGraphs[repoId];
+  const graph = await api.getRepositoryGraph(repoId).catch(() => null);
 
-  let prs = await api.getPullRequests(repoId).catch(() => getPullRequestsForRepo(repoId));
-  const pullRequests = (prs || getPullRequestsForRepo(repoId)).slice(0, 2);
-  const scoreDelta = health.score - health.previousScore;
+  const prs = await api.getPullRequests(repoId).catch(() => []);
+  const pullRequests = prs.slice(0, 3);
+  const scoreDelta = health.score - (health.previousScore ?? health.score);
 
   return (
     <div className="mx-auto flex max-w-6xl flex-col gap-6">
@@ -90,8 +77,12 @@ export default async function RepositoryDashboardPage({
             ))}
             <span>·</span>
             <span>{repo.fileCount} files</span>
-            <span>·</span>
-            <span>Analyzed {formatRelativeDate(repo.lastAnalyzedAt!)}</span>
+            {repo.lastAnalyzedAt && (
+              <>
+                <span>·</span>
+                <span>Analyzed {formatRelativeDate(repo.lastAnalyzedAt)}</span>
+              </>
+            )}
           </div>
         </div>
         <div className="flex shrink-0 gap-2">

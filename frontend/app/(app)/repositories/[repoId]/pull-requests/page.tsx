@@ -15,12 +15,11 @@ export default async function PullRequestsPage({
   params: Promise<{ repoId: string }>;
 }) {
   const { repoId } = await params;
-  let repo = await api.getRepository(repoId).catch(() => getRepository(repoId));
-  if (!repo) repo = getRepository(repoId);
+  const repo = (await api.getRepository(repoId).catch(() => null)) ?? getRepository(repoId);
   if (!repo) notFound();
 
-  let prs = await api.getPullRequests(repoId).catch(() => getPullRequestsForRepo(repoId));
-  const pullRequests = prs && prs.length > 0 ? prs : getPullRequestsForRepo(repoId);
+  let prs = await api.getPullRequests(repoId).catch(() => null);
+  const pullRequests = prs !== null ? prs : (getPullRequestsForRepo(repoId) || []);
 
   return (
     <div className="mx-auto flex max-w-4xl flex-col gap-6">
@@ -34,7 +33,7 @@ export default async function PullRequestsPage({
       {pullRequests.length === 0 ? (
         <Card className="items-center gap-2 p-10 text-center">
           <GitPullRequest className="size-6 text-muted-foreground" />
-          <p className="text-sm text-muted-foreground">No pull requests analyzed yet.</p>
+          <p className="text-sm text-muted-foreground">No pull requests analyzed yet for this repository.</p>
         </Card>
       ) : (
         <ul className="flex flex-col gap-3">
@@ -44,7 +43,7 @@ export default async function PullRequestsPage({
                 <Card className="flex-row items-center gap-4 p-4 transition-colors hover:border-primary/40">
                   <Avatar className="size-9 shrink-0">
                     <AvatarFallback className="bg-primary/15 text-xs font-medium text-primary">
-                      {pr.authorAvatar}
+                      {pr.authorAvatar || pr.author?.slice(0, 2).toUpperCase() || "PR"}
                     </AvatarFallback>
                   </Avatar>
                   <div className="min-w-0 flex-1">
@@ -65,15 +64,14 @@ export default async function PullRequestsPage({
                       </Badge>
                     </div>
                     <p className="mt-1 text-xs text-muted-foreground">
-                      {pr.author} opened {formatRelativeDate(pr.createdAt)} ·{" "}
-                      {pr.branch} → {pr.baseBranch} · {pr.changedFiles.length} files changed
+                      {pr.author} wants to merge into{" "}
+                      <span className="font-mono">{pr.baseBranch}</span> from{" "}
+                      <span className="font-mono">{pr.branch}</span> ·{" "}
+                      {formatRelativeDate(pr.createdAt)}
                     </p>
                   </div>
-                  <div className="flex shrink-0 flex-col items-end gap-1.5">
-                    <div className="flex gap-1.5">
-                      <RiskBadge level={pr.bugRisk} showDot={false} />
-                    </div>
-                    <span className="text-[11px] text-muted-foreground">Bug risk</span>
+                  <div className="flex shrink-0 items-center gap-2">
+                    <RiskBadge level={pr.bugRisk} />
                   </div>
                 </Card>
               </Link>

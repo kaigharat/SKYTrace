@@ -1,7 +1,8 @@
 import type { ReactNode } from "react";
 import { AppShell } from "@/components/layout/app-shell";
-import { repositories } from "@/lib/mock-data";
+import { api } from "@/lib/api";
 
-export default function AppGroupLayout({ children }: { children: ReactNode }) {
+export default async function AppGroupLayout({ children }: { children: ReactNode }) {
+  const repositories = await api.getRepositories().catch(() => []);
   return <AppShell repositories={repositories}>{children}</AppShell>;
 }

@@ -1,4 +1,4 @@
-"""FastAPI routers implementing the PRD REST API and ML integration contracts."""
+"""FastAPI routers implementing the REST API and ML integration contracts."""
 
 from __future__ import annotations
 
@@ -42,33 +42,24 @@ def list_repositories():
 
 @router.post("/repositories/connect", response_model=Repository, status_code=status.HTTP_201_CREATED, tags=["Repositories"])
 def connect_repository(payload: dict):
-    """Connect a new GitHub repository."""
+    """
+    Connect a GitHub repository and kick off real analysis.
+    Accepts: { "fullName": "owner/repo" } or { "fullName": "https://github.com/owner/repo" }
+    """
     service = get_repo_service()
-    full_name = payload.get("fullName", payload.get("name", "acme-labs/new-service"))
-    repo_id = f"repo-{full_name.split('/')[-1].replace('.', '-')}"
+    full_name = payload.get("fullName") or payload.get("name") or ""
+    description = payload.get("description", "")
 
-    existing = service.get_repository(repo_id)
-    if existing:
-        return existing
+    if not full_name:
+        raise HTTPException(status_code=422, detail="fullName is required (e.g. 'owner/repo' or GitHub URL)")
 
-    repo = Repository(
-        id=repo_id,
-        owner=full_name.split("/")[0] if "/" in full_name else "user",
-        name=full_name.split("/")[-1],
-        fullName=full_name,
-        defaultBranch="main",
-        private=payload.get("private", True),
-        languages=[payload.get("language", "Python")],
-        description=payload.get("description", "Connected repository."),
-        stars=payload.get("stars", 10),
-        connectedAt="Just now",
-        lastAnalyzedAt=None,
-        analysisStatus="completed",
-        fileCount=145,
-        locCount=16200,
-    )
-    service.repositories[repo.id] = repo
-    return repo
+    try:
+        repo = service.connect_and_analyze(full_name, description)
+        return repo
+    except ValueError as e:
+        raise HTTPException(status_code=422, detail=str(e))
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Failed to connect repository: {e}")
 
 
 @router.get("/repositories/{repo_id}", response_model=Repository, tags=["Repositories"])
@@ -83,29 +74,38 @@ def get_repository(repo_id: str):
 
 @router.post("/repositories/{repo_id}/analyze", response_model=AnalysisJob, tags=["Repositories"])
 def analyze_repository(repo_id: str):
-    """Trigger an analysis run on a repository."""
+    """Trigger or re-trigger an analysis run on a repository."""
     service = get_repo_service()
     repo = service.get_repository(repo_id)
     if not repo:
         raise HTTPException(status_code=404, detail=f"Repository {repo_id} not found")
 
-    job = AnalysisJob(
-        repositoryId=repo_id,
-        status="completed",
-        progress=100,
-        startedAt="Just now",
-        steps=[
-            AnalysisStep(key="clone", label="Cloning repository", status="done", detail="Repository indexed"),
-            AnalysisStep(key="parse", label="Parsing source (Tree-sitter + AST)", status="done", detail="AST constructed"),
-            AnalysisStep(key="graph", label="Building dependency & call graph", status="done", detail="Edges resolved"),
-            AnalysisStep(key="history", label="Analyzing Git history", status="done", detail="Commits processed"),
-            AnalysisStep(key="models", label="Running risk models", status="done", detail="ML models executed"),
-            AnalysisStep(key="index", label="Indexing historical embeddings", status="done"),
-            AnalysisStep(key="finalize", label="Computing repository health score", status="done"),
-        ],
-    )
-    service.analysis_jobs[repo_id] = job
-    repo.analysisStatus = "completed"
+    # Re-trigger analysis
+    service._start_analysis(repo_id, repo.fullName)
+    job = service.get_analysis_status(repo_id)
+    if not job:
+        raise HTTPException(status_code=500, detail="Failed to start analysis")
+    return job
+
+
+@router.get("/repositories/{repo_id}/analyze/status", response_model=AnalysisJob, tags=["Repositories"])
+def get_analysis_status(repo_id: str):
+    """Get real-time analysis job status. Poll this endpoint during analysis."""
+    service = get_repo_service()
+    job = service.get_analysis_status(repo_id)
+    if not job:
+        # Check if repo exists
+        repo = service.get_repository(repo_id)
+        if not repo:
+            raise HTTPException(status_code=404, detail=f"Repository {repo_id} not found")
+        # Return a completed job for already-analyzed repos
+        return AnalysisJob(
+            repositoryId=repo_id,
+            status=repo.analysisStatus,
+            progress=100 if repo.analysisStatus == "completed" else 0,
+            startedAt=repo.connectedAt,
+            steps=[],
+        )
     return job
 
 
@@ -115,7 +115,7 @@ def get_repository_health(repo_id: str):
     service = get_repo_service()
     health = service.get_health(repo_id)
     if not health:
-        raise HTTPException(status_code=404, detail=f"Health metrics not found for repository {repo_id}")
+        raise HTTPException(status_code=404, detail=f"Health metrics not found for {repo_id}. Analysis may still be running.")
     return health
 
 
@@ -199,12 +199,11 @@ def get_pull_request_review(pr_id: str):
 def predict_code(request: PredictCodeRequest):
     """
     Executes the real ML inference pipeline on the provided source code:
-    1. Extracts 39 static features (length, complexity, control flow, keywords, dangerous functions)
-    2. Runs trained RandomForestBaseline model forward pass
-    3. Computes multi-dimensional risk scores (defectRisk, securityRisk, regressionRisk)
-    4. Evaluates feature contribution weights to generate explainable EvidenceFactors
+    1. Extracts 39 static features
+    2. Runs RandomForestBaseline model
+    3. Computes multi-dimensional risk scores
+    4. Generates explainable EvidenceFactors
     5. Matches similar historical vulnerability patterns
-    6. Returns structured ComponentRisk response and updates repository intelligence
     """
     service = get_repo_service()
     comp = service.analyze_code_snippet(

@@ -217,6 +217,7 @@ export interface AnalysisJob {
   progress: number;
   steps: AnalysisStep[];
   startedAt: string;
+  errorMessage?: string;
 }
 
 export interface CommitEntry {

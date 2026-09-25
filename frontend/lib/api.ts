@@ -23,7 +23,7 @@ interface RequestOptions extends RequestInit {
 }
 
 async function apiFetch<T>(endpoint: string, options: RequestOptions = {}): Promise<T> {
-  const { timeoutMs = 8000, ...fetchOptions } = options;
+  const { timeoutMs = 30000, ...fetchOptions } = options;
   const controller = new AbortController();
   const timeoutId = setTimeout(() => controller.abort(), timeoutMs);
 
@@ -106,7 +106,10 @@ export const api = {
     return apiFetch<PullRequestReview>(`/api/pull-requests/${prId}`);
   },
 
-  async connectRepository(payload: { fullName: string; description?: string }): Promise<Repository> {
+  async connectRepository(payload: {
+    fullName: string;
+    description?: string;
+  }): Promise<Repository> {
     return apiFetch<Repository>("/api/repositories/connect", {
       method: "POST",
       body: JSON.stringify(payload),
@@ -117,6 +120,11 @@ export const api = {
     return apiFetch<AnalysisJob>(`/api/repositories/${repositoryId}/analyze`, {
       method: "POST",
     });
+  },
+
+  /** Poll this during analysis for real-time step progress. */
+  async getAnalysisStatus(repositoryId: string): Promise<AnalysisJob> {
+    return apiFetch<AnalysisJob>(`/api/repositories/${repositoryId}/analyze/status`);
   },
 
   /**
@@ -140,7 +148,7 @@ export const api = {
         code: params.code,
         path: params.path || "source.py",
         language: params.language || "Python",
-        repositoryId: params.repositoryId || "repo-orbit-payments",
+        repositoryId: params.repositoryId || "repo-default",
         componentId: params.componentId,
       }),
     });
