@@ -1,15 +1,19 @@
 # Dependencies
 node_modules/
+frontend/node_modules/
 .pnp
 .pnp.js
 
-# Next.js build
+# Next.js & Build Artifacts
 frontend/.next/
 frontend/out/
+.next/
+out/
 build/
 dist/
+*.tsbuildinfo
 
-# Python
+# Python & Cache
 __pycache__/
 *.py[cod]
 *$py.class
@@ -21,16 +25,25 @@ venv/
 ENV/
 *.egg-info/
 .pytest_cache/
+.mypy_cache/
+.ruff_cache/
 .coverage
 htmlcov/
+.cache/
 
-# Environment & local secrets
+# Environment & Local Secrets
 .env
 .env.local
 .env.development.local
 .env.test.local
 .env.production.local
 !.env.example
+frontend/.env
+frontend/.env.local
+frontend/.env.development.local
+frontend/.env.test.local
+frontend/.env.production.local
+!frontend/.env.example
 
 # OS & IDE
 .DS_Store
@@ -43,10 +56,23 @@ htmlcov/
 *.swp
 *.swo
 
-# Large datasets & raw logs
+# Logs & Debugging
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+.pnpm-debug.log*
+
+# Vercel
+.vercel
+
+# Large Datasets, Raw Logs & Model Checkpoints
 *.parquet
 *.pt
 *.pth
+*.bin
+*.onnx
+*.safetensors
 data/raw/
 data/processed/
 experiments/
