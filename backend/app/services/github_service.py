@@ -163,15 +163,18 @@ class GitHubService:
     def parse_repo_identifier(self, identifier: str) -> Tuple[str, str]:
         """Parse 'owner/repo' or full GitHub URL into (owner, repo)."""
         identifier = identifier.strip().rstrip("/")
-        # Handle full URLs
-        patterns = [
-            r"github\.com[:/]([^/]+)/([^/\s\.]+?)(?:\.git)?$",
-            r"^([^/\s]+)/([^/\s]+)$",
-        ]
-        for pat in patterns:
-            m = re.search(pat, identifier)
-            if m:
-                return m.group(1), m.group(2)
+        if identifier.endswith(".git"):
+            identifier = identifier[:-4]
+        # Match GitHub URL (including with subpaths like /tree/main, etc.)
+        m = re.search(r"github\.com[:/]([^/\s]+)/([^/\s]+)", identifier, re.I)
+        if m:
+            owner = m.group(1)
+            repo = m.group(2).split("/")[0]
+            return owner, repo
+        # Match owner/repo
+        m = re.match(r"^([^/\s]+)/([^/\s]+)$", identifier)
+        if m:
+            return m.group(1), m.group(2)
         raise ValueError(
             f"Cannot parse '{identifier}'. Use 'owner/repo' or a GitHub URL."
         )
@@ -215,20 +218,30 @@ class GitHubService:
                 language=lang,
             ))
 
-        # Sort by path for determinism, cap at MAX_FILES
+        # Sort by path for determinism, cap at 40 files for fast live demo inference
         files.sort(key=lambda f: f.path)
-        return files[:MAX_FILES]
+        return files[:40]
 
     def _fetch_file_contents(
         self,
         files: List[GitHubFile],
         progress_cb=None,
     ) -> None:
-        """Fetch source code for each file in-place."""
-        for i, f in enumerate(files):
+        """Fetch source code for each file in parallel using ThreadPoolExecutor."""
+        from concurrent.futures import ThreadPoolExecutor, as_completed
+
+        completed = 0
+        total = len(files)
+
+        def fetch_one(f: GitHubFile) -> None:
             f.content = self._get_raw(f.download_url)
-            if progress_cb:
-                progress_cb(i + 1, len(files))
+
+        with ThreadPoolExecutor(max_workers=8) as executor:
+            future_to_file = {executor.submit(fetch_one, f): f for f in files}
+            for future in as_completed(future_to_file):
+                completed += 1
+                if progress_cb:
+                    progress_cb(completed, total)
 
     def _fetch_commits(self, owner: str, repo: str) -> List[GitHubCommit]:
         """Fetch recent commits."""

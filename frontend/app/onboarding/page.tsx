@@ -42,15 +42,21 @@ const EXAMPLE_REPOS = [
 ];
 
 function parseRepoSlug(input: string): string | null {
-  const s = input.trim();
+  let s = input.trim().replace(/\/+$/, "");
   if (!s) return null;
+  if (s.endsWith(".git")) s = s.slice(0, -4);
 
-  // Full URL: https://github.com/owner/repo[.git][/...]
-  const urlMatch = s.match(/github\.com[:/]([^/\s]+\/[^/\s\.]+?)(?:\.git)?(?:\/.*)?$/i);
-  if (urlMatch) return urlMatch[1];
+  // Full URL: https://github.com/owner/repo or git@github.com:owner/repo
+  const urlMatch = s.match(/github\.com[:/]([^/\s]+)\/([^/\s]+)/i);
+  if (urlMatch) {
+    return `${urlMatch[1]}/${urlMatch[2].replace(/\/.*$/, "")}`;
+  }
 
   // owner/repo format
-  if (/^[^/\s]+\/[^/\s]+$/.test(s)) return s;
+  const slugMatch = s.match(/^([^/\s]+)\/([^/\s]+)$/);
+  if (slugMatch) {
+    return `${slugMatch[1]}/${slugMatch[2]}`;
+  }
 
   return null;
 }

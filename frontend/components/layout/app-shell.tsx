@@ -6,6 +6,7 @@ import { usePathname } from "next/navigation";
 import {
   Boxes,
   Code2,
+  Cpu,
   GitPullRequest,
   HelpCircle,
   LayoutDashboard,
@@ -38,6 +39,7 @@ function navItems(repoId?: string) {
     { href: `/repositories/${repoId}/components`, label: "Components", icon: Code2 },
     { href: `/repositories/${repoId}/graph`, label: "Dependency Graph", icon: Boxes },
     { href: `/repositories/${repoId}/pull-requests`, label: "Pull Requests", icon: GitPullRequest },
+    { href: `/repositories/${repoId}/analyzing`, label: "Analysis Pipeline", icon: Cpu },
   ];
 }
 
@@ -103,39 +105,7 @@ function SidebarContent({
           );
         })}
 
-        {/* Small Info Card: How SkyTrace Works */}
-        <div className="mt-4 rounded-lg border border-sidebar-border bg-sidebar-accent/30 p-3 text-xs">
-          <div className="flex items-center justify-between mb-2">
-            <span className="font-mono font-bold text-[11px] text-sidebar-foreground">
-              How SkyTrace works
-            </span>
-            <Sparkles className="size-3 text-sidebar-primary" />
-          </div>
-          <div className="flex flex-col gap-1 text-[11px] font-mono text-sidebar-foreground/80">
-            <div className="bg-sidebar-accent/80 px-2 py-1 rounded border border-sidebar-border text-center">
-              Source + Dependencies + History
-            </div>
-            <ArrowDown className="size-3 mx-auto text-sidebar-foreground/50" />
-            <div className="bg-sidebar-accent/80 px-2 py-1 rounded border border-sidebar-border text-center">
-              Feature Extraction
-            </div>
-            <ArrowDown className="size-3 mx-auto text-sidebar-foreground/50" />
-            <div className="bg-sidebar-accent/80 px-2 py-1 rounded border border-sidebar-border text-center">
-              ML Analysis
-            </div>
-            <ArrowDown className="size-3 mx-auto text-sidebar-foreground/50" />
-            <div className="bg-sidebar-accent/80 px-2 py-1 rounded border border-sidebar-border text-center text-sidebar-primary font-bold">
-              Risk + Evidence
-            </div>
-          </div>
-          <Link
-            href="/#workflow"
-            className="mt-3 flex items-center gap-1 text-[10px] font-medium text-sidebar-primary hover:underline"
-          >
-            <HelpCircle className="size-3" />
-            <span>View complete workflow guide</span>
-          </Link>
-        </div>
+
       </nav>
 
       {/* Footer Link */}
