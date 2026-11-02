@@ -11,7 +11,7 @@
 [![Python](https://img.shields.io/badge/Python-3.11-3776AB?style=flat-square&logo=python)](https://python.org)
 [![License](https://img.shields.io/badge/license-MIT-green?style=flat-square)](LICENSE)
 
-> BTech Final-Year Software Engineering Project
+> BTech Deep Learing Software Engineering Project
 
 </div>
 
