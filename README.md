@@ -1,343 +1,343 @@
 <div align="center">
 
-# 🛰️ SkyTrace — Repository Intelligence AI
+# ☁️ SkyTrace
+### Repository Intelligence AI
 
-### *Predict Defects • Uncover Vulnerabilities • Analyze Pull Request Blast Radius • Map Dependency Call-Graphs*
+**Understand your software repository as a connected ML system.**
 
-[![Python 3.10+](https://img.shields.io/badge/python-3.10+-3776AB.svg?style=for-the-badge&logo=python&logoColor=white)](https://www.python.org/)
-[![Next.js 16](https://img.shields.io/badge/next.js-16.3-000000.svg?style=for-the-badge&logo=nextdotjs&logoColor=white)](https://nextjs.org/)
-[![FastAPI](https://img.shields.io/badge/FastAPI-0.115+-009688.svg?style=for-the-badge&logo=fastapi&logoColor=white)](https://fastapi.tiangolo.com/)
-[![Tailwind CSS v4](https://img.shields.io/badge/tailwindcss-v4-38BDF8.svg?style=for-the-badge&logo=tailwindcss&logoColor=white)](https://tailwindcss.com/)
-[![TypeScript](https://img.shields.io/badge/TypeScript-5.0+-3178C6.svg?style=for-the-badge&logo=typescript&logoColor=white)](https://www.typescriptlang.org/)
-[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg?style=for-the-badge)](LICENSE)
+[![Branch](https://img.shields.io/badge/branch-V1-blue?style=flat-square)](https://github.com/kaigharat/SKYTrace/tree/V1)
+[![FastAPI](https://img.shields.io/badge/FastAPI-0.141-009688?style=flat-square&logo=fastapi)](https://fastapi.tiangolo.com)
+[![Next.js](https://img.shields.io/badge/Next.js-16-black?style=flat-square&logo=nextdotjs)](https://nextjs.org)
+[![Python](https://img.shields.io/badge/Python-3.11-3776AB?style=flat-square&logo=python)](https://python.org)
+[![License](https://img.shields.io/badge/license-MIT-green?style=flat-square)](LICENSE)
 
----
+> BTech Final-Year Software Engineering Project
 
-**SkyTrace** is an end-to-end AI platform for repository intelligence and code health analysis. It seamlessly analyzes public GitHub repositories and raw code snippets, utilizing static feature extraction (39 static code metrics) paired with machine learning inference to predict defect probabilities, highlight security risks, assess pull-request blast radius, and provide explainable AI reasoning.
-
-[Key Features](#-key-features) • [Architecture](#-architecture-overview) • [Quick Start](#-quick-start) • [ML Pipeline](#-how-the-ml-pipeline-works) • [API Reference](#-key-api-endpoints) • [Testing](#-testing--verification)
-
----
 </div>
 
-## ✨ Key Features
+---
 
-| Feature | Description |
-|---|---|
-| 🔍 **Live GitHub Repository Analysis** | Connect any public GitHub repository (e.g. `expressjs/express`, `pallets/flask`) with real-time fetch, code structure analysis, commit metrics, and live polling. |
-| 🛡️ **Multi-Dimensional Risk Engine** | Evaluates code across **Defect Risk**, **Security Risk**, and **Regression Risk** with normalized 0–100% scores and severity classifications (`CRITICAL`, `HIGH`, `MEDIUM`, `LOW`). |
-| 💥 **PR Blast Radius & Risk Assessment** | Simulates and quantifies the impact of incoming Pull Requests across downstream modules, breaking changes, and risk levels before merging. |
-| 🕸️ **Interactive Call-Graph & Dependency Topology** | Visualizes component relationships, file couplings, static centrality, and co-change clusters with interactive graph layouts. |
-| 🧪 **Real-Time Code Inspector** | Paste any source code snippet directly in the UI for instant sub-second ML feature extraction, flaw detection, and vulnerability pattern matching. |
-| 🧠 **Explainable AI Attribution** | Provides exact `EvidenceFactors` explaining risk scores (e.g. *Unsafe API usage (+34%)*, *Excessive cyclomatic complexity (+28%)*) with CWE/CVE references. |
+## What is SkyTrace?
+
+Modern software repositories are complex, inter-connected systems. Standard static linters evaluate code **in isolation**, missing systemic risks.
+
+**SkyTrace** bridges this gap by unifying:
+- 🌳 **Source Code AST semantics** — structural parse trees per component
+- 🔗 **Dependency & Call Graphs** — import and call relationships as a DAG
+- 📜 **Git Commit History** — churn, bug-fix patterns, and co-change clusters
+- 🤖 **Machine Learning Models** — Random Forest / XGBoost trained on defect data
+
+…into a **single intelligence layer** that predicts defect risks, identifies security vulnerabilities, and highlights regression blast radius across your entire codebase.
 
 ---
 
-## 🏗️ Architecture Overview
+## ✨ Core Capabilities
 
-SkyTrace unites a high-performance **Next.js 16 frontend**, a **FastAPI backend orchestration service**, and a **Machine Learning inference engine** into a unified microservices system.
+| Module | Description |
+|---|---|
+| 📊 **Repository Health Score** | Aggregated 0–100 score with 14-day trend, risk distribution breakdown |
+| 🔍 **Component Risk Analysis** | Per-file/function/class defect probability, cyclomatic complexity, coupling |
+| 🕸️ **Dependency Graph** | Interactive DAG showing imports, calls, inheritance, and blast radius hops |
+| 🔒 **Security Findings** | Semgrep + ML vulnerability scoring with line-level evidence traces |
+| 🔀 **PR Impact Review** | AI-powered blast radius analysis, regression heatmap, and test recommendations |
+| 🧠 **Historical Defect Intelligence** | FAISS vector search matching components against past bug patterns |
+| ⚡ **Live ML Inference API** | Real-time `/predict/code` endpoint — 39 static features → risk score |
 
-```mermaid
-flowchart TD
-    subgraph Frontend["Frontend Layer (Next.js 16 + TypeScript)"]
-        UI["Dashboard / Repo Detail / Risk UI"]
-        Inspector["Live ML Code Inspector"]
-        PRPanel["PR Blast Radius Viewer"]
-        ApiClient["API Client (lib/api.ts)"]
-    end
+---
 
-    subgraph Backend["Backend Layer (FastAPI)"]
-        Router["API Router (/api/...)"]
-        GitHubService["GitHub Service (github_service.py)"]
-        RepoService["Repository Orchestration (repo_service.py)"]
-        Schema["Pydantic Schemas (domain.py)"]
-    end
+## 🏗️ Architecture
 
-    subgraph ML["Machine Learning & Inference Layer"]
-        Extractor["39 Static Feature Extractor"]
-        Model["RandomForest Baseline Engine"]
-        Explainer["Evidence Attribution & CWE Matcher"]
-        Metrics["Code Quality Calculator"]
-    end
-
-    UI --> ApiClient
-    Inspector --> ApiClient
-    PRPanel --> ApiClient
-    ApiClient -->|HTTP / JSON| Router
-    Router --> Schema
-    Router --> GitHubService
-    Router --> RepoService
-    GitHubService -->|GitHub REST API| ExternalGitHub["GitHub API"]
-    RepoService --> Extractor
-    Extractor --> Model
-    Model --> Explainer
-    Extractor --> Metrics
-    Explainer --> RepoService
-    Metrics --> RepoService
-    RepoService --> Router
-    Router --> ApiClient
+```
+User (Browser)
+     │
+     ▼
+┌─────────────────────────┐
+│   Next.js 16 Frontend   │  React 19 · Tailwind CSS · shadcn/ui · Recharts
+│   (Port 3000)           │
+└───────────┬─────────────┘
+            │ REST API calls
+            ▼
+┌─────────────────────────┐
+│   FastAPI Backend       │  Python 3.11 · Pydantic · Uvicorn
+│   (Port 8000)           │
+└──────┬──────────┬───────┘
+       │          │
+       ▼          ▼
+ GitHub API    ML Engine
+ (PyGithub)    │
+               ├─ AST Parser       (ast / tree-sitter)
+               ├─ Feature Extractor (39 static features)
+               ├─ RF/XGBoost Model  (joblib weights)
+               └─ FAISS Index       (defect vector search)
 ```
 
-### 🔄 End-to-End Prediction & Analysis Pipeline
+### Data Pipeline
 
-```text
-User Input / GitHub Repo URL
-          │
-          ▼
-FastAPI Validation (Pydantic domain schemas)
-          │
-          ▼
-GitHub Integration / Local AST Parser (39 Code Features)
-          │
-          ▼
-Random Forest Classifier Inference Engine (rf_baseline.joblib)
-          │
-          ▼
-Multi-Risk Calibration (Defect %, Security %, Regression %)
-          │
-          ▼
-Explainable Evidence Factors & CWE Vulnerability Matching
-          │
-          ▼
-Structured JSON Response ──► Interactive UI / Graphs / Health Score
+```
+GitHub Repo URL
+      │
+      ▼ Clone & Ingest
+Source Files + Git History
+      │
+      ▼ Parse
+AST Trees · Import Graphs · Commit Logs · PR Diffs
+      │
+      ▼ Feature Extraction
+Cyclomatic Complexity · Code Churn · Coupling · LOC · Change Frequency
+      │
+      ▼ ML Inference
+Random Forest / XGBoost → Defect Probability [0.0 – 1.0]
+      │
+      ▼ Risk Classification
+LOW · MEDIUM · HIGH · CRITICAL  +  Explainable Evidence Factors
+      │
+      ▼ Dashboard
+Interactive Graphs · PR Reviews · Security Findings
+```
+
+---
+
+## 🛠️ Tech Stack
+
+### Backend
+- **FastAPI** — async REST API framework
+- **PyGithub** — GitHub repository data ingestion
+- **scikit-learn / XGBoost** — ML defect prediction models
+- **FAISS** — vector similarity search for historical defect matching
+- **Pydantic v2** — strict schema validation and serialization
+
+### Frontend
+- **Next.js 16** (App Router) — SSR + React Server Components
+- **React 19** — UI layer
+- **Tailwind CSS** + **shadcn/ui** — component system
+- **Recharts** — health trend and risk distribution charts
+
+### Infrastructure
+- **Docker Compose** — one-command full-stack deployment
+- **Pytest** — API, ML, and E2E test suites
+
+---
+
+## 🚀 Getting Started
+
+### Prerequisites
+
+- Python **3.11+**
+- Node.js **18+** and npm/pnpm
+- Git
+
+### 1. Clone the repository
+
+```bash
+git clone https://github.com/kaigharat/SKYTrace.git
+cd SKYTrace
+git checkout V1
+```
+
+### 2. Configure environment
+
+```bash
+cp .env.example .env
+```
+
+Edit `.env` and set your GitHub token *(strongly recommended)*:
+
+```env
+GITHUB_TOKEN=ghp_your_token_here        # github.com/settings/tokens
+NEXT_PUBLIC_API_URL=http://localhost:8000
+```
+
+> **Without a token:** 60 API requests/hour (public repos only)  
+> **With a token:** 5,000 requests/hour + private repo support
+
+### 3. Start the Backend
+
+```bash
+# Create virtual environment
+python -m venv .venv
+.venv\Scripts\activate          # Windows
+# source .venv/bin/activate     # macOS / Linux
+
+# Install dependencies
+pip install -r backend/requirements.txt
+
+# Run the API server
+python scripts/start_backend.py
+# → API available at http://localhost:8000
+# → Swagger docs at http://localhost:8000/docs
+```
+
+### 4. Start the Frontend
+
+```bash
+cd frontend
+npm install
+npm run dev
+# → App available at http://localhost:3000
+```
+
+### 5. Docker (Full Stack)
+
+```bash
+docker-compose up --build
+# Backend → http://localhost:8000
+# Frontend → http://localhost:3000
+```
+
+---
+
+## 📡 API Reference
+
+Base URL: `http://localhost:8000/api`  
+Interactive docs: [`/docs`](http://localhost:8000/docs) (Swagger UI)
+
+### Repositories
+
+| Method | Endpoint | Description |
+|---|---|---|
+| `GET` | `/repositories` | List all connected repositories |
+| `POST` | `/repositories/connect` | Connect a GitHub repo and trigger analysis |
+| `GET` | `/repositories/{id}` | Get repository metadata |
+| `POST` | `/repositories/{id}/analyze` | Re-trigger analysis |
+| `GET` | `/repositories/{id}/analyze/status` | Poll real-time analysis progress |
+| `GET` | `/repositories/{id}/health` | Get health score, trends, risk distribution |
+
+### Components & Code
+
+| Method | Endpoint | Description |
+|---|---|---|
+| `GET` | `/repositories/{id}/components` | List all analyzed components with risk scores |
+| `GET` | `/repositories/{id}/components/{cid}` | Detailed risk, metrics, and evidence for one component |
+| `GET` | `/repositories/{id}/components/{cid}/code` | Source code preview |
+| `GET` | `/repositories/{id}/components/{cid}/history` | Commit history for a component |
+
+### Graphs, Security & PRs
+
+| Method | Endpoint | Description |
+|---|---|---|
+| `GET` | `/repositories/{id}/graph` | Full dependency/call graph (nodes + edges) |
+| `GET` | `/repositories/{id}/security` | Security vulnerability findings |
+| `GET` | `/repositories/{id}/pull-requests` | AI-reviewed pull request list |
+| `GET` | `/pull-requests/{pr_id}` | Individual PR blast radius + test recommendations |
+
+### ML Inference
+
+| Method | Endpoint | Description |
+|---|---|---|
+| `POST` | `/predict/code` | Live inference: submit code → get risk score + evidence |
+
+**Example `/predict/code` request:**
+```json
+{
+  "code": "def authenticate(user, password):\n    query = f'SELECT * FROM users WHERE name={user}'",
+  "path": "auth/service.py",
+  "language": "Python",
+  "repositoryId": "my-repo"
+}
 ```
 
 ---
 
 ## 📁 Project Structure
 
-```text
-SkyTrace/
-├── frontend/                     # Next.js 16 + Tailwind CSS v4 + TypeScript
-│   ├── app/                      # Next.js App Router (Dashboard, Repos, Components, Graph, PRs)
-│   ├── components/               # UI Components (shadcn/ui, topology graph, ML inspector)
-│   ├── lib/
-│   │   ├── api.ts                # Backend API client with automatic offline fallback
-│   │   ├── types.ts              # TypeScript domain contracts
-│   │   └── mock-data.ts          # Resilient seed data
-│   └── package.json
-│
-├── backend/                      # FastAPI Backend & ML Orchestration
+```
+SKYtrace/
+├── backend/
 │   ├── app/
-│   │   ├── api/                  # API Routers & Endpoint definitions
-│   │   │   └── endpoints.py      # Repository, Component, Graph, PR, & Predict endpoints
-│   │   ├── core/                 # Config & CORS setup (config.py)
-│   │   ├── schemas/              # Pydantic data contracts (domain.py)
-│   │   ├── services/             # GitHub API integration & Repo state management
-│   │   │   ├── github_service.py # Live GitHub API integration & repo fetcher
-│   │   │   └── repo_service.py   # In-memory repo repository & analysis runner
-│   │   └── main.py               # FastAPI entrypoint
-│   │
-│   ├── ml/                       # Machine Learning Inference Engine
-│   │   ├── features/             # 39 static feature extractors & static metrics
-│   │   ├── inference/            # Production model inference engine (engine.py)
-│   │   ├── models/               # Model architectures (Random Forest, CodeBERT)
-│   │   └── weights/              # Serialized model weights (rf_baseline.joblib)
-│   └── requirements.txt
-│
-├── tests/                        # Comprehensive Automated Test Suite
-│   ├── test_api.py               # FastAPI endpoint tests
-│   ├── test_github_service.py    # GitHub API integration tests
-│   ├── test_analysis_polling.py  # Repository analysis polling lifecycle tests
-│   ├── test_pr_blast_radius.py   # PR blast radius calculation tests
-│   ├── test_inference.py         # Static feature extraction & model inference tests
-│   └── test_e2e_flow.py          # End-to-end system flow integration tests
-│
-├── scripts/                      # Developer scripts & launchers
-│   └── dev.sh                    # Dual-service launcher script
-│
-├── docker-compose.yml            # Container orchestration for Full Stack
-├── .env.example                  # Environment configuration template
-└── README.md                     # Project documentation
+│   │   ├── api/
+│   │   │   └── endpoints.py       # All REST API routes
+│   │   ├── schemas/
+│   │   │   └── domain.py          # Pydantic domain models
+│   │   └── services/
+│   │       ├── repo_service.py    # Core analysis orchestration
+│   │       └── github_service.py  # GitHub API integration
+│   └── ml/
+│       ├── data/
+│       │   └── dataset.py         # Training data loader (parquet splits)
+│       └── weights/
+│           └── rf_baseline.joblib # Trained Random Forest model
+├── frontend/
+│   ├── app/
+│   │   ├── page.tsx               # Landing page
+│   │   ├── onboarding/            # Repository connection flow
+│   │   └── (app)/repositories/
+│   │       └── [repoId]/          # Repository dashboard + component pages
+│   ├── components/
+│   │   ├── layout/                # App shell, nav, theme toggle
+│   │   ├── pr-review/             # PR blast radius UI
+│   │   └── shared/                # Health ring, risk badge, logo
+│   └── lib/
+│       ├── api.ts                 # Typed API client
+│       ├── types.ts               # TypeScript domain types
+│       └── risk.ts                # Risk level helpers
+├── tests/
+│   ├── test_api.py
+│   ├── test_e2e_flow.py
+│   ├── test_pr_blast_radius.py
+│   ├── test_inference.py
+│   └── ml/
+│       ├── test_dataset.py
+│       └── test_phase1.py
+├── scripts/
+│   ├── start_backend.py           # Development server launcher
+│   └── dev.sh                     # Full-stack dev helper
+├── docker-compose.yml
+├── .env.example
+└── conftest.py
 ```
 
 ---
 
-## ⚡ Quick Start
-
-### 📋 Prerequisites
-
-* **Python**: `3.10` or higher
-* **Node.js**: `18.18` or higher (`20+` recommended)
-* **npm**: `9.0` or higher
-
----
-
-### 1️⃣ Clone & Setup Environment
+## 🧪 Running Tests
 
 ```bash
-git clone https://github.com/kaigharat/SKYTrace.git
-cd SKYTrace
+# All tests
+pytest
 
-# Copy environment file
-cp .env.example .env
+# API tests only
+pytest tests/test_api.py -v
+
+# ML pipeline tests
+pytest tests/ml/ -v
+
+# End-to-end flow
+pytest tests/test_e2e_flow.py -v
 ```
 
 ---
 
-### 2️⃣ Install Backend Dependencies
+## 🎯 Risk Levels
 
-```bash
-# Create virtual environment (optional but recommended)
-python -m venv .venv
+SkyTrace classifies every component across three risk dimensions:
 
-# Windows Powershell:
-.\.venv\Scripts\activate
-# Linux/macOS:
-source .venv/bin/activate
+| Level | Badge | Threshold | Action |
+|---|---|---|---|
+| 🟢 **LOW** | `LOW` | Probability < 0.30 | Monitor periodically |
+| 🟡 **MEDIUM** | `MEDIUM` | 0.30 – 0.55 | Review before release |
+| 🔴 **HIGH** | `HIGH` | 0.55 – 0.75 | Prioritize refactor |
+| 🚨 **CRITICAL** | `CRITICAL` | > 0.75 | Block PR / immediate fix |
 
-# Install requirements
-pip install -r backend/requirements.txt
-```
+Health score weights: **Defect Risk** 30% · **Security Risk** 30% · **Regression Risk** 20% · **Code Quality** 10% · **Historical Stability** 10%
 
 ---
 
-### 3️⃣ Install Frontend Dependencies
+## 👥 Team
 
-```bash
-cd frontend
-npm install
-cd ..
-```
-
----
-
-### 4️⃣ Launch the Application
-
-#### Option A: Run Individually (Recommended for development)
-
-**Terminal 1 — Backend (FastAPI):**
-```bash
-# Windows:
-.\.venv\Scripts\python.exe -m uvicorn backend.app.main:app --host 127.0.0.1 --port 8000 --reload
-
-# Linux / macOS:
-uvicorn backend.app.main:app --host 127.0.0.1 --port 8000 --reload
-```
-* **API Server**: `http://localhost:8000`
-* **Swagger Documentation**: `http://localhost:8000/docs`
-
-**Terminal 2 — Frontend (Next.js):**
-```bash
-cd frontend
-npm run dev
-```
-* **Web Dashboard**: `http://localhost:3000`
-
-#### Option B: Using Docker Compose
-
-```bash
-docker-compose up --build
-```
-
----
-
-## 🤖 How the ML Pipeline Works
-
-The SkyTrace ML engine processes source code through a multi-stage pipeline:
-
-1. **Static Feature Extraction (`backend/ml/features/static_features.py`)**:
-   - Parses code snippets or repository source files.
-   - Extracts **39 static features** including:
-     - **Syntactic Complexity**: `cyclomaticComplexity`, `n_branches_if`, `n_loops_while`, `n_switch`, `n_distinct_tokens`.
-     - **Code Volume**: `length_chars`, `n_lines`, `n_code_lines`, `avg_line_length`.
-     - **Security-Critical Operations**: `has_strcpy`, `has_gets`, `has_sprintf`, `has_malloc`, `has_free`, `has_memcpy`, `has_cast`.
-2. **Model Inference Engine (`backend/ml/inference/engine.py`)**:
-   - Evaluates vectors against a trained `RandomForestBaseline` (300 estimators with balanced class weighting).
-   - Generates calibrated multi-dimensional risk metrics.
-3. **Risk Scoring Categories**:
-   - 🔴 **Defect Risk**: Likelihood of software bugs, driven by complexity and volume.
-   - 🛡️ **Security Risk**: Vulnerability profile, driven by dangerous functions and unsafe operations.
-   - ⚡ **Regression Risk**: Risk of regression on edit, driven by coupling and dependency metrics.
-4. **Explainable AI Attribution (`EvidenceFactor`)**:
-   - Breaks down exact contributing factors with percentage weights explaining *why* the component was flagged.
-5. **CWE Pattern Matching**:
-   - Matches code signatures against common vulnerability types (e.g. `CWE-120: Buffer Copy without Checking Size`, `CWE-79: Cross-Site Scripting`).
-
----
-
-## 📡 Key API Endpoints
-
-| Method | Endpoint | Description |
+| Role | Name | Responsibility |
 |---|---|---|
-| `GET` | `/health` | Backend server & ML engine status |
-| `GET` | `/api/repositories` | List all connected repositories |
-| `POST` | `/api/repositories/connect` | Connect a public GitHub repository (e.g. `expressjs/express`) |
-| `GET` | `/api/repositories/{id}` | Get repository details & analysis status |
-| `GET` | `/api/repositories/{id}/health` | Repository health score & 14-day trend |
-| `GET` | `/api/repositories/{id}/components` | List components with risk scores |
-| `GET` | `/api/repositories/{id}/components/{cid}` | Component deep-dive, metrics & explainability |
-| `GET` | `/api/repositories/{id}/graph` | Dependency call-graph (nodes & edges) |
-| `GET` | `/api/repositories/{id}/pull-requests` | Pull requests with blast radius assessment |
-| `POST` | `/api/predict/code` | **Instant real-time ML inference on raw code snippet** |
-
----
-
-## 💻 Example API Usage
-
-### Real-Time Code Prediction Request
-
-```bash
-curl -X POST http://localhost:8000/api/predict/code \
-  -H "Content-Type: application/json" \
-  -d '{
-    "code": "void process_input(char* input) { char buffer[32]; strcpy(buffer, input); gets(buffer); }",
-    "path": "input_processor.c",
-    "language": "C"
-  }'
-```
-
-### JSON Response
-
-```json
-{
-  "status": "success",
-  "inferenceSource": "SkyTrace RandomForest ML Baseline + 39 Static Features",
-  "component": {
-    "id": "comp-input-processor",
-    "path": "input_processor.c",
-    "language": "C",
-    "defectRisk": 68,
-    "securityRisk": 99,
-    "regressionRisk": 51,
-    "riskLevel": "CRITICAL",
-    "metrics": {
-      "loc": 3,
-      "cyclomaticComplexity": 1,
-      "functionLength": 3,
-      "coupling": 1
-    },
-    "evidence": [
-      {
-        "label": "Unsafe memory / API usage",
-        "detail": "Detection of unchecked buffer operations (strcpy/gets).",
-        "weight": 0.34
-      }
-    ]
-  }
-}
-```
-
----
-
-## 🧪 Testing & Quality Assurance
-
-Run the automated test suite covering FastAPI endpoints, GitHub integration, analysis polling, PR blast radius, static feature extraction, and ML inference:
-
-```bash
-# Run pytest suite
-python -m pytest tests/ -v
-```
-
-To verify Next.js frontend compilation and TypeScript type-checking:
-
-```bash
-cd frontend
-npm run build
-```
+| Product · Frontend · GitHub Intelligence | **Yashodhan** | UI/UX, landing page, repo integration |
+| AI / ML · Research | **Swarali** | Model training, FAISS, feature engineering |
+| Backend · Infrastructure | **Kaivalya** | FastAPI, services, deployment |
 
 ---
 
 ## 📄 License
 
-This project is licensed under the **MIT License** — see the [LICENSE](LICENSE) file for details.
+This project is licensed under the MIT License.
+
+---
+
+<div align="center">
+  <sub>Built with ❤️ as a BTech Final-Year Software Engineering Project</sub><br/>
+  <sub>Next.js 16 · React 19 · FastAPI · Python ML · Tailwind CSS · shadcn/ui</sub>
+</div>
